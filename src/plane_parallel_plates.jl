@@ -12,6 +12,15 @@ struct PlaneParallelPlate
     n_λ::Function      # Refractive index curve, n(λ) for λ in µm
 end
 
+"""
+    Platestack
+
+A `Platestack` is a vector of PlaneParallelPlate to handle the case one has multiple different media in the optical path.
+"""
+struct PlateStack
+    plates::Vector{PlaneParallelPlate}
+end
+PlateStack(ps::PlaneParallelPlate...) = PlateStack(collect(ps))
 # ------------------------------------------------------------
 # Diamond
 # ------------------------------------------------------------

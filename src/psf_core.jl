@@ -102,24 +102,28 @@ function psf_inner(ψ, u, v, s, n; rtol=1e-4, atol=1e-5)
 end
 
 # -------------------------------------------------------------------
-# Normal incidence with a plane-parallel plate
+# Normal incidence with a plane-parallel plate or plate stack
 # -------------------------------------------------------------------
 
 """
     Ξ(ρ, ϕ, ψ, u, v, k, s, n, n_a, t)
 
-Phase term for normal incidence with a plane-parallel plate.
-Adds the plate-induced phase `k * t * Φ(...)` to the aberration-free phase.
+Phase term for normal incidence with a plane-parallel plate **or stack**.
+
+- `n_a` : either a scalar (single plate) or vector of relative indices
+- `t`   : scalar thickness or vector of thicknesses (µm)
+
+Adds the plate-induced phase `k * Φ(sρ, n_a, t)` to the base aberration-free phase.
 """
 function Ξ(ρ, ϕ, ψ, u, v, k, s, n, n_a, t)
-    Φv = t * Φ(s * ρ, n_a)
+    Φv = Φ(s * ρ, n_a, t)               # <- multiple dispatch handles scalar vs vector
     @fastmath Ξv = k * Φv + Ξ(ρ, ϕ, ψ, u, v, s, n)
 end
 
 """
     ξx(ρ, ϕ, ψ, u, v, k, s, n, n_a, t)
 
-x-polarized integrand with normal-incidence plate. 
+x-polarized integrand with normal-incidence plate (single or stacked).
 """
 function ξx(ρ, ϕ, ψ, u, v, k, s, n, n_a, t)
     Ξv = Ξ(ρ, ϕ, ψ, u, v, k, s, n, n_a, t)
@@ -129,7 +133,7 @@ end
 """
     ξy(ρ, ϕ, ψ, u, v, k, s, n, n_a, t)
 
-y-polarized integrand with normal-incidence plate.
+y-polarized integrand with normal-incidence plate (single or stacked).
 """
 function ξy(ρ, ϕ, ψ, u, v, k, s, n, n_a, t)
     Ξv = Ξ(ρ, ϕ, ψ, u, v, k, s, n, n_a, t)
@@ -139,7 +143,7 @@ end
 """
     ξz(ρ, ϕ, ψ, u, v, k, s, n, n_a, t)
 
-z-polarized integrand with normal-incidence plate.
+z-polarized integrand with normal-incidence plate (single or stacked).
 """
 function ξz(ρ, ϕ, ψ, u, v, k, s, n, n_a, t)
     Ξv = Ξ(ρ, ϕ, ψ, u, v, k, s, n, n_a, t)
@@ -149,10 +153,11 @@ end
 """
     psf_inner(ψ, u, v, k, s, n, n_a, t; rtol=1e-4, atol=1e-5)
 
-Compute the PSF with normal incidence on a plane-parallel plate via `hcubature`.
-- `k` is the wave number (2πn_obj / λ).
-- `t` is plate thickness in µm.
-- `n_a` is the plate’s refractive index (possibly scaled by immersion factor).
+Compute the PSF with normal incidence on a plane-parallel plate or a **stack**.
+
+- `n_a` : scalar (single plate) or vector of relative indices n_layer / n_imm
+- `t`   : scalar thickness or vector of thicknesses in µm
+- `k`   : wave number (2π n_imm / λ)
 """
 function psf_inner(ψ, u, v, k, s, n, n_a, t; rtol=1e-4, atol=1e-5)
     resx = hcubature(
@@ -179,24 +184,24 @@ function psf_inner(ψ, u, v, k, s, n, n_a, t; rtol=1e-4, atol=1e-5)
 end
 
 # -------------------------------------------------------------------
-# Tilted incidence with a plane-parallel plate
+# Tilted incidence with a plane-parallel plate or plate stack
 # -------------------------------------------------------------------
 
 """
     Ξ(ρ, ϕ, ψ, u, v, k, s, α, n, n_a, t)
 
-Phase term for tilted incidence with a plane-parallel plate.
-Adds the tilt-based phase `Φ(..., α)` plus the base aberration-free term.
+Phase term for tilted incidence with a plane-parallel plate or **stack**.
+Uses the tilted aberration function Φ(sρ, ϕ, n_a, t, α).
 """
 function Ξ(ρ, ϕ, ψ, u, v, k, s, α, n, n_a, t)
-    Φv = t * Φ(s * ρ, ϕ, n_a, α)
+    Φv = Φ(s * ρ, ϕ, n_a, t, α)
     @fastmath Ξv = k * Φv + Ξ(ρ, ϕ, ψ, u, v, s, n)
 end
 
 """
     ξx(ρ, ϕ, ψ, u, v, k, s, α, n, n_a, t)
 
-x-polarized integrand with tilted-incidence plate.
+x-polarized integrand with tilted-incidence plate (single or stacked).
 """
 function ξx(ρ, ϕ, ψ, u, v, k, s, α, n, n_a, t)
     Ξv = Ξ(ρ, ϕ, ψ, u, v, k, s, α, n, n_a, t)
@@ -206,7 +211,7 @@ end
 """
     ξy(ρ, ϕ, ψ, u, v, k, s, α, n, n_a, t)
 
-y-polarized integrand with tilted-incidence plate.
+y-polarized integrand with tilted-incidence plate (single or stacked).
 """
 function ξy(ρ, ϕ, ψ, u, v, k, s, α, n, n_a, t)
     Ξv = Ξ(ρ, ϕ, ψ, u, v, k, s, α, n, n_a, t)
@@ -216,7 +221,7 @@ end
 """
     ξz(ρ, ϕ, ψ, u, v, k, s, α, n, n_a, t)
 
-z-polarized integrand with tilted-incidence plate.
+z-polarized integrand with tilted-incidence plate (single or stacked).
 """
 function ξz(ρ, ϕ, ψ, u, v, k, s, α, n, n_a, t)
     Ξv = Ξ(ρ, ϕ, ψ, u, v, k, s, α, n, n_a, t)
@@ -226,11 +231,11 @@ end
 """
     psf_inner(ψ, u, v, k, s, α, n, n_a, t; rtol=1e-4, atol=1e-5)
 
-Compute the PSF with tilted incidence on a plane-parallel plate via `hcubature`.
-- `α` is the tilt angle (radians).
-- `k` is wave number (2π n_imm / λ).
-- `n_a` is plate index scaled if needed.
-- Other parameters as before.
+Compute the PSF with tilted incidence on a plane-parallel plate or **stack**.
+
+- `α`  : tilt angle (radians)
+- `n_a`: scalar or vector of relative indices
+- `t`  : scalar or vector of thicknesses (µm)
 """
 function psf_inner(ψ, u, v, k, s, α, n, n_a, t; rtol=1e-4, atol=1e-5)
     resx = hcubature(
@@ -255,7 +260,6 @@ function psf_inner(ψ, u, v, k, s, α, n, n_a, t; rtol=1e-4, atol=1e-5)
     ret += abs2(resz[1]::ComplexF64)
     return ret / π^2
 end
-
 # -------------------------------------------------------------------
 # High-level PSF(...) methods
 # -------------------------------------------------------------------
@@ -287,7 +291,7 @@ No plate, normal incidence in air or immersion.
 """
 function PSF(x, y, z, λ, obj::Objective; rtol::Float64=1e-4, atol::Float64=1e-5)
     n_imm = obj.n
-    s     = obj.NA 
+    s     = obj.NA / n_imm
     k     = 2π * n_imm / λ
 
     # s^2/(n^2)? If there's no plate, we consider n=1 in sample side.
@@ -321,7 +325,7 @@ Normal incidence with a plane-parallel plate and an explicit Objective.
 """
 function PSF(x, y, z, λ, obj::Objective, plate::PlaneParallelPlate; target::PlaneParallelPlate=plate, rtol=1e-4, atol=1e-5)
     n_imm = obj.n
-    s     = obj.NA
+    s     = obj.NA / n_imm
     k     = 2π * n_imm / λ
     n     = target.n_λ(λ)
     n_a   = plate.n_λ(λ) / n_imm
@@ -356,7 +360,7 @@ Tilted incidence with plane + objective.
 """
 function PSF(x, y, z, λ, obj::Objective, plate::PlaneParallelPlate, α; target::PlaneParallelPlate=plate, rtol=1e-4, atol=1e-5)
     n_imm = obj.n
-    s     = obj.NA
+    s     = obj.NA / n_imm
     k     = 2π * n_imm / λ
     n     = target.n_λ(λ)
     n_a   = plate.n_λ(λ) / n_imm
@@ -476,4 +480,98 @@ Calls `PSF(x, y, z, λ, obj, plate, α; rtol, atol)`.
 function PSF(x, y, z, param::PSFParams{TiltedIncidence};
     rtol::Float64=1e-4, atol::Float64=1e-5)
     return PSF(x, y, z, param.λ, param.obj, param.plate, param.α; rtol=rtol, atol=atol)
+end
+
+"""
+    PSF(x, y, z, λ, NA::Float64, stack::PlateStack; target=last(stack.plates), ...)
+
+Normal incidence with a stack of plane-parallel plates, no explicit `Objective`.
+
+- `stack` : PlateStack of layers between objective and sample.
+- `target`: which plate defines the sample refractive index `n` (defaults to last).
+"""
+function PSF(x, y, z, λ, NA::Float64, stack::PlateStack;
+             target::PlaneParallelPlate = last(stack.plates),
+             rtol::Float64=1e-4, atol::Float64=1e-5)
+
+    n   = target.n_λ(λ)                         # sample index
+    n_a = [p.n_λ(λ) for p in stack.plates]      # absolute plate indices (n_imm = 1)
+    t   = [p.t       for p in stack.plates]
+
+    s   = NA
+    k   = 2π / λ
+    u   = k * (1 - sqrt(1 - s^2)) / (1 - sqrt(1 - s^2 / n^2)) * z
+    v   = k * s * sqrt(x^2 + y^2)
+    ψ   = atan(x, y)
+    return psf_inner(ψ, u, v, k, s, n, n_a, t; rtol=rtol, atol=atol)
+end
+
+"""
+    PSF(x, y, z, λ, obj::Objective, stack::PlateStack; target=last(stack.plates), ...)
+
+Normal incidence with an Objective and a stack of plane-parallel plates.
+
+- `obj.n` is the immersion index n_imm.
+- `n_a` is stored as n_layer / n_imm for each plate.
+"""
+function PSF(x, y, z, λ, obj::Objective, stack::PlateStack;
+             target::PlaneParallelPlate = last(stack.plates),
+             rtol::Float64=1e-4, atol::Float64=1e-5)
+
+    n_imm = obj.n
+    s     = obj.NA / n_imm
+    k     = 2π * n_imm / λ
+
+    n     = target.n_λ(λ)                       # sample index
+    n_a   = [p.n_λ(λ) / n_imm for p in stack.plates]
+    t     = [p.t             for p in stack.plates]
+
+    u = k * (1 - sqrt(1 - s^2)) / (1 - sqrt(1 - s^2 / n^2)) * z
+    v = k * s * sqrt(x^2 + y^2)
+    ψ = atan(x, y)
+    return psf_inner(ψ, u, v, k, s, n, n_a, t; rtol=rtol, atol=atol)
+end
+
+"""
+    PSF(x, y, z, λ, NA::Float64, stack::PlateStack, α; ...)
+
+Tilted incidence with a stack, no explicit `Objective`.
+"""
+function PSF(x, y, z, λ, NA::Float64, stack::PlateStack, α;
+             target::PlaneParallelPlate = last(stack.plates),
+             rtol::Float64=1e-4, atol::Float64=1e-5)
+
+    n   = target.n_λ(λ)
+    n_a = [p.n_λ(λ) for p in stack.plates]
+    t   = [p.t       for p in stack.plates]
+
+    s   = NA
+    k   = 2π / λ
+    u   = k * (1 - sqrt(1 - s^2)) / (1 - sqrt(1 - s^2 / n^2)) * z
+    v   = k * s * sqrt(x^2 + y^2)
+    ψ   = atan(x, y)
+    return psf_inner(ψ, u, v, k, s, α, n, n_a, t; rtol=rtol, atol=atol)
+end
+
+"""
+    PSF(x, y, z, λ, obj::Objective, stack::PlateStack, α; ...)
+
+Tilted incidence with an Objective and a stack of plates.
+"""
+function PSF(x, y, z, λ, obj::Objective, stack::PlateStack, α;
+             target::PlaneParallelPlate = last(stack.plates),
+             rtol::Float64=1e-4, atol::Float64=1e-5)
+
+    n_imm = obj.n
+    s     = obj.NA / n_imm
+    k     = 2π * n_imm / λ
+
+    n     = target.n_λ(λ)
+    n_a   = [p.n_λ(λ) / n_imm for p in stack.plates]
+    t     = [p.t             for p in stack.plates]
+
+    u = k * (1 - sqrt(1 - s^2)) / (1 - sqrt(1 - s^2 / n^2)) * z
+    v = k * s * sqrt(x^2 + y^2)
+    ψ = atan(x, y)
+    return psf_inner(ψ, u, v, k, s, α, n, n_a, t; rtol=rtol, atol=atol)
 end

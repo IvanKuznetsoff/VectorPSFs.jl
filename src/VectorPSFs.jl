@@ -53,7 +53,7 @@ export MPlanApo100x, LMPLFLN100XBD, MPlanApo50x, M10x, UPLXAPO100X
 # From `plane_parallel_plates.jl`
 export PlaneParallelPlate
 export Diamond, FusedSilica, BorosilicateCrown, Sapphire, MagnesiumFluoride
-export CustomPlate
+export CustomPlate, PlateStack
 
 # From `NVspectrum.jl`
 export NVspectrum

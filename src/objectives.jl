@@ -14,7 +14,7 @@ struct Objective
     NA::Float64   # Numerical aperture (dimensionless)
     n::Float64    # Refractive index in the immersion medium
 end
-
+Objective(f::Float64, NA::Float64) = Objective(f::Float64, NA::Float64, 1.0) 
 """
     MPlanApo100x()
 
